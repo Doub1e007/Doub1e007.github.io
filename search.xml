@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>数据库基础知识</title>
+      <link href="/2024/05/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"/>
+      <url>/2024/05/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/</url>
+      
+        <content type="html"><![CDATA[<h1 id="数据库基础"><a href="#数据库基础" class="headerlink" title="数据库基础"></a>数据库基础</h1><p>数据库<strong>用途</strong>介绍：</p><p>​软件系统之中所存有的数据是怎么来的？这些数据都是软件在使用过程中通过人为的操作形态添加进去的。</p><p>​在系统的服务器中，所有的数据都是长期存贮在服务器之中的。以便随时被软件系统所调用。为了更好的管理、组织、共享所有的数据，于是出现了对这些数据进行管理的工具。叫做数据库（Database,DB）.</p><p>数据库在计算机中的<strong>核心作用</strong>：</p><p>​1.实现数据的共享</p><p>​2.减少数据的冗余</p><p>​3.让数据具备独立性</p><p>​4.可以让数据进行集中化管理</p><p>​5.确保数据的安全性和可靠性，保持了数据的一致性和可维护性</p><p>​6.故障恢复</p><p><strong>数据库就是用来管理服务器的数据内容。所有的数据也是软件系统最具价值的部分</strong></p><p>主流数据库的介绍：</p><p>1.关系型数据库（mysql、oracle、SqlServer）</p><p>​所有的数据内容通过各种约束进行关联，由此产生关系。数据库都是基于二维表格    的形式来进行数据的存储。固定统一的表结构</p><p>针对于复杂的数据内容和结构可以做到非常有序的管理。针对海量数据进行读取的时候效率极低。</p><p>2.非关系型数据库（redis,mangodb,hbase,hadoop）</p><p>​专门用于海量数据的数据库。相当于一个文件夹，对于数据结构无固定要求，也没有统一的表结构形态。因为不再有关系的存在，在拓展性上更加灵活。数据的读写效率更高。</p><p>所有的数据库结构在初期都是靠人为设计的。数据字典就是数据库的设计文档。</p><p><strong>Mysql</strong>是目前业内最主流的数据库</p><p>数据库的基本使用：</p><p>​软件与数据库的交互都是基于Sql语言的形态来交互的。是专门用于数据库交互的语言。对于数据的查询、更新、管理关系起作用。</p><p>Sql语言，核心 增删改查</p><p>​select * from table_name where Code&#x3D;’NEL’</p><p>​查询 什么内容 从什么表 查询条件</p><p>Update</p><p>Insert into</p><p>Delete * from table_name where code&#x3D;’1’ (删除所有code为1的数据内容)</p><p>删除</p><p>一般在软件系统中删除分为物理删除和逻辑删除。正常而言数据库的数据内容有备份</p><p>数据类型，在程序里面不同的数据有不同的类型。</p><p>Int 正整数</p><p>Char 字符串 对于固定长度的内容 选择用char</p><p>varchar 字符串 对于不固定的长度 用多少内存就分配多少</p><p>sql拓展知识：</p><p>sql注入中，核心目的通过系统获取到数据库的数据内容。所有一般常用select关键字</p><p>Database() 查看数据库的名称</p><p>查看数据库的表结构信息</p><p>Information_schema库是mysql自带的系统数据库。是mysql中的信息数据库。其中保存了关于mysql服务器中所维护的其他所有的数据库相关信息。包括表、字段、权限等内容</p><p>​Select table_name from information_schema.’TABLE’ where table_schema&#x3D;’world’</p><p>​Select table_name from information_schema.’COLUMNS’ where table_name&#x3D;’city’</p><p>​information_schema.tables查看指定的数据库表</p><p>​information_schema.columns 查看指定字段</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Hello World</title>
       <link href="/2024/05/09/hello-world/"/>
       <url>/2024/05/09/hello-world/</url>
