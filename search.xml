@@ -8,7 +8,7 @@
       <link href="/2025/05/09/%E6%8F%90%E9%97%AE%E6%8A%80%E5%B7%A7/"/>
       <url>/2025/05/09/%E6%8F%90%E9%97%AE%E6%8A%80%E5%B7%A7/</url>
       
-        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script>]]></content>
+        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><p>指令(Prompt)组成：</p><p>  角色：给AI定义一个最匹配的任务角色，如：[你是一位软件测试工程师]；</p><p>  指示：对任务进行描述，如：[需要对以下需求进行测试用例]；</p><p>  上下文：给出与任务相关的其他背景信息；</p><p>  例子：必要时给出举例，如用例标题格式 登录失败(密码错误)</p><p>  输入：任务的输入信息；在提示词中明确标识出输入，如SQL注入、兼容性测试、功能测试；</p><p>  输出：输出格式描述，便于继续模块自动化解析输出结果</p>]]></content>
       
       
       
