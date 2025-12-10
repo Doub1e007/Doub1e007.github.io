@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>hashcat暴力破解</title>
+      <link href="/2025/04/22/hashcat%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3/"/>
+      <url>/2025/04/22/hashcat%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3/</url>
+      
+        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">测试机器破解速度：hashcat.exe -b</span><br></pre></td></tr></table></figure><p>Hashcat参考网站：重要！！！[example_hashes <a href="https://hashcat.net/wiki/doku.php?id=example_hashes">hashcat wiki]</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 网络安全 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 暴力破解 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
