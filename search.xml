@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>图片隐写</title>
+      <link href="/2026/05/16/%E5%9B%BE%E7%89%87%E9%9A%90%E5%86%99/"/>
+      <url>/2026/05/16/%E5%9B%BE%E7%89%87%E9%9A%90%E5%86%99/</url>
+      
+        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><p>图片隐写(Image Steganography)，即把信息藏在图片中，让人不能直接看出来</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hello boy</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Linux密码找回方法(bushi</title>
       <link href="/2026/05/14/%E8%BF%91%E6%9C%9F%E4%B8%80%E4%BA%9BLinux%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E/"/>
       <url>/2026/05/14/%E8%BF%91%E6%9C%9F%E4%B8%80%E4%BA%9BLinux%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E/</url>
@@ -21,31 +34,6 @@
         <tags>
             
             <tag> 漏洞 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>hashcat暴力破解</title>
-      <link href="/2025/04/22/hashcat%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3/"/>
-      <url>/2025/04/22/hashcat%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3/</url>
-      
-        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">测试机器破解速度：hashcat.exe -b</span><br></pre></td></tr></table></figure><p>Hashcat参考网站：重要！！！[example_hashes <a href="https://hashcat.net/wiki/doku.php?id=example_hashes">hashcat wiki]</a></p>]]></content>
-      
-      
-      <categories>
-          
-          <category> 网络安全 </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> 暴力破解 </tag>
             
         </tags>
       
