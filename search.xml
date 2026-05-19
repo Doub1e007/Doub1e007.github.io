@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>使用codex时遇到的问题及解决方案</title>
+      <link href="/2026/05/19/%E4%BD%BF%E7%94%A8codex%E6%97%B6%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
+      <url>/2026/05/19/%E4%BD%BF%E7%94%A8codex%E6%97%B6%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</url>
+      
+        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><p>在新机器上下载使用Codex启动时遇到如下报错（登录失败：failed to start login server: 以一种访问权限不允许的方式做了一个访问套接字的尝试）</p><p>大概率是端口问题</p><p>解决方案：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">net stop winnat</span><br><span class="line">netsh interface ipv4 show excludedportrange protocol=tcp</span><br><span class="line">net start winnat</span><br><span class="line">netsh interface ipv4 show excludedportrange protocol=tcp </span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> 随记 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 常用工具报错解决 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>图片隐写</title>
       <link href="/2026/05/16/%E5%9B%BE%E7%89%87%E9%9A%90%E5%86%99/"/>
       <url>/2026/05/16/%E5%9B%BE%E7%89%87%E9%9A%90%E5%86%99/</url>
@@ -26,7 +51,7 @@
       
       <categories>
           
-          <category> 杂七杂八 </category>
+          <category> 随记 </category>
           
       </categories>
       
