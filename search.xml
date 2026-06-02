@@ -61,6 +61,18 @@
         <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><p>图片隐写(Image Steganography)，即把信息藏在图片中，让人不能直接看出来</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hello boy</span><br></pre></td></tr></table></figure>]]></content>
       
       
+      <categories>
+          
+          <category> 安全 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 隐写 </tag>
+            
+        </tags>
       
     </entry>
     

