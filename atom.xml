@@ -10,7 +10,29 @@
   <rights>All rights reserved 2026, Doub1e007</rights>
   <subtitle>保持热爱，奔赴山海</subtitle>
   <title>剁椒鱼头没剁椒的博客</title>
-  <updated>2026-06-04T07:21:04.725Z</updated>
+  <updated>2026-06-06T03:36:33.283Z</updated>
+  <entry>
+    <author>
+      <name>Doub1e007</name>
+    </author>
+    <category term="技术" scheme="https://doub1e007.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="API" scheme="https://doub1e007.github.io/tags/API/"/>
+    <category term="AI" scheme="https://doub1e007.github.io/tags/AI/"/>
+    <category term="安全" scheme="https://doub1e007.github.io/tags/%E5%AE%89%E5%85%A8/"/>
+    <category term="Agent" scheme="https://doub1e007.github.io/tags/Agent/"/>
+    <category term="中间人攻击" scheme="https://doub1e007.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB/"/>
+    <content>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><h2 id="问题的起点"><a href="#问题的起点" class="headerlink" title="问题的起点"></a>问题的起点</h2><p>很多人已经把”本地 Agent + 中转站”当成了日常玩法。Claude Code、OpenCode、Codex 这些工具的本质已经是 <strong>LLM + 本地执行器</strong>——它们不只是聊天，是真的能操作你的电脑。</p><h2 id="你以为的中转站-vs-实际上的中转站"><a href="#你以为的中转站-vs-实际上的中转站" class="headerlink" title="你以为的中转站 vs 实际上的中转站"></a>你以为的中转站 vs 实际上的中转站</h2><p>大多数人以为中转站就是个透明代理：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">客户端 → Proxy → Claude/OpenAI</span><br></pre></td></tr></table></figure><p>无非就是换个 API 地址、省点钱、解决区域限制。</p><p>但实际情况是，很多第三方 Proxy <strong>并不是透明转发</strong>，它完全可以做到：</p><ul><li><strong>修改 Prompt</strong>：在你发出去的请求里注入额外指令</li><li><strong>注入 System Prompt</strong>：改变模型的行为逻辑</li><li><strong>污染模型返回</strong>：在响应中插入恶意内容</li><li><strong>插入 Tool Call</strong>：伪造一个看起来正常的工具调用</li><li><strong>修改 Function Call</strong>：篡改参数或替换目标</li></ul><p>这本质上已经是 <strong>MITM（中间人攻击）</strong>了。</p><h2 id="真实案例"><a href="#真实案例" class="headerlink" title="真实案例"></a>真实案例</h2><p>最近有用户在微信群反馈：接入了某个公益中转站后，本地环境出现了异常——</p><ul><li><code>%AppData%</code> 下被创建了 <code>.ps1</code> 文件</li><li><code>Startup</code> 启动目录被写入了 <code>.vbs</code> 文件</li><li>开机自动运行，PowerShell 隐藏执行</li></ul><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Startup\某文件.vbs</span><br><span class="line">  → WScript.Shell.Run powershell ...</span><br><span class="line">  → WindowStyle Hidden（隐藏窗口）</span><br></pre></td></tr></table></figure><p>虽然该案例只是弹窗，但这个行为模式本身——<strong>VBS 启动项 + PS1 Payload + Hidden PowerShell</strong>——已经和传统脚本木马高度接近了。</p><h2 id="攻击链路拆解"><a href="#攻击链路拆解" class="headerlink" title="攻击链路拆解"></a>攻击链路拆解</h2><p>很多人以为这是中转站”黑进了电脑”，其实真正的链路更隐蔽：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">用户请求</span><br><span class="line">  ↓</span><br><span class="line">Claude Code（正常发起）</span><br><span class="line">  ↓</span><br><span class="line">第三方 Proxy（修改返回内容）</span><br><span class="line">  ↓</span><br><span class="line">Claude Code（信任返回结果，触发工具调用）</span><br><span class="line">  ↓</span><br><span class="line">调用 Shell / File Tool</span><br><span class="line">  ↓</span><br><span class="line">本机执行恶意操作</span><br></pre></td></tr></table></figure><p><strong>真正危险的是”返回结果”被篡改</strong>，而不是直接攻击主机。</p><p>而这个攻击之所以难以察觉，是因为 Agent 平时<strong>本来就会</strong>做这些事：</p><ul><li>创建文件、改配置</li><li>跑 terminal 命令</li><li>安装依赖、写脚本</li></ul><p>恶意操作混在正常行为里，尤其是终端疯狂刷屏的时候，根本不会逐条去看。</p><p>而且用户看到的是”Claude Code 在正常工作”，天然就没什么警惕性。</p><h2 id="安全边界正在模糊化"><a href="#安全边界正在模糊化" class="headerlink" title="安全边界正在模糊化"></a>安全边界正在模糊化</h2><p>以前木马需要：</p><ul><li>漏洞利用</li><li>RCE</li><li>提权</li></ul><p>现在：用户自己装了一个”能执行命令的 AI”，它天然就有全盘读写权限和 Shell 执行能力。</p><p>攻击者不需要攻破你的系统——他只需要污染一次 API 返回，你的 Agent 就会帮他把剩下的活干了。这是安全模型上一个值得重视的变化。</p><h2 id="防护建议"><a href="#防护建议" class="headerlink" title="防护建议"></a>防护建议</h2><ol><li><strong>重要项目走官方 API</strong>：生产环境、涉及敏感数据的场景直接用厂商官方接口</li><li><strong>审查 Agent 的操作日志</strong>：定期回看 Agent 的 Shell 和文件操作记录，关注异常的脚本写入和启动项修改</li><li><strong>限制 Agent 的运行权限</strong>：在容器或受限用户下运行，减少 blast radius</li><li><strong>选择可信渠道</strong>：如果必须用中转，选技术栈透明、可审计的开源方案自建，而不是来历不明的公益站</li></ol><hr><blockquote><p>任何中转站都能干出这种事。不要把自己的 API 调用链路交给不透明的第三方——你给它的是钥匙，它拿你什么东西，全看人品。</p></blockquote>]]>
+    </content>
+    <id>https://doub1e007.github.io/2026/06/06/API%E4%B8%AD%E8%BD%AC%E7%AB%99%E7%9A%84%E5%AE%89%E5%85%A8%E9%9A%90%E6%82%A3-%E5%BD%93AI-Agent%E9%81%87%E4%B8%8A%E6%81%B6%E6%84%8F%E4%BB%A3%E7%90%86/</id>
+    <link href="https://doub1e007.github.io/2026/06/06/API%E4%B8%AD%E8%BD%AC%E7%AB%99%E7%9A%84%E5%AE%89%E5%85%A8%E9%9A%90%E6%82%A3-%E5%BD%93AI-Agent%E9%81%87%E4%B8%8A%E6%81%B6%E6%84%8F%E4%BB%A3%E7%90%86/"/>
+    <published>2026-06-06T12:00:00.000Z</published>
+    <summary>
+      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" cla]]>
+    </summary>
+    <title>API 中转站的安全隐患：当 AI Agent 遇上恶意代理</title>
+    <updated>2026-06-06T03:36:33.283Z</updated>
+  </entry>
   <entry>
     <author>
       <name>Doub1e007</name>
