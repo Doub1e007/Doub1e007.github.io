@@ -59,24 +59,6 @@
     <author>
       <name>Doub1e007</name>
     </author>
-    <category term="安全" scheme="https://doub1e007.github.io/categories/%E5%AE%89%E5%85%A8/"/>
-    <category term="服务器" scheme="https://doub1e007.github.io/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/"/>
-    <content>
-      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><h1 id="路径遍历"><a href="#路径遍历" class="headerlink" title="路径遍历"></a><strong>路径遍历</strong></h1><p>路径遍历也叫目录遍历。这种漏洞使攻击者能够读取运行应用程序的服务器上的任意文件。包括但不限于：</p><ul><li>应用程序代码和数据</li><li>后端系统凭证</li><li>敏感的操作系统文件</li></ul><p>某些情况下，攻击者可能能够写入服务器上的任意文件，从而修改应用程序数据或行为，并最终完全控制服务器。</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hello boy</span><br></pre></td></tr></table></figure>]]>
-    </content>
-    <id>https://doub1e007.github.io/2026/05/28/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/</id>
-    <link href="https://doub1e007.github.io/2026/05/28/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"/>
-    <published>2026-05-28T03:19:11.000Z</published>
-    <summary>
-      <![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" cla]]>
-    </summary>
-    <title>基础知识</title>
-    <updated>2026-05-28T03:19:11.000Z</updated>
-  </entry>
-  <entry>
-    <author>
-      <name>Doub1e007</name>
-    </author>
     <category term="随记" scheme="https://doub1e007.github.io/categories/%E9%9A%8F%E8%AE%B0/"/>
     <category term="常用工具报错解决" scheme="https://doub1e007.github.io/tags/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7%E6%8A%A5%E9%94%99%E8%A7%A3%E5%86%B3/"/>
     <content>
